@@ -1,6 +1,6 @@
-require('dotenv').config();
-const { setupServer } = require('./server');
-const { initMongoConnection } = require('./db/initMongoConnection');
+import 'dotenv/config';
+import { setupServer } from './server.js';
+import { initMongoConnection } from './db/initMongoConnection.js';
 
 async function startApplication() {
   try {

@@ -1,6 +1,6 @@
-const contactsService = require('../services/contacts');
+import * as contactsService from '../services/contacts.js';
 
-const getAllContacts = async (req, res) => {
+export const getAllContacts = async (req, res) => {
   try {
     const contacts = await contactsService.getAllContacts();
 
@@ -17,7 +17,7 @@ const getAllContacts = async (req, res) => {
   }
 };
 
-const getContactById = async (req, res) => {
+export const getContactById = async (req, res) => {
   try {
     const { contactId } = req.params;
     const contact = await contactsService.getContactById(contactId);
@@ -42,9 +42,4 @@ const getContactById = async (req, res) => {
       message: 'Internal server error',
     });
   }
-};
-
-module.exports = {
-  getAllContacts,
-  getContactById,
 };

@@ -1,6 +1,6 @@
-const Contact = require('../models/Contact');
+import Contact from '../models/Contact.js';
 
-const getAllContacts = async () => {
+export const getAllContacts = async () => {
   try {
     const contacts = await Contact.find();
     console.log('Найдено контактов:', contacts.length);
@@ -11,7 +11,7 @@ const getAllContacts = async () => {
   }
 };
 
-const getContactById = async contactId => {
+export const getContactById = async contactId => {
   try {
     const contact = await Contact.findById(contactId);
     return contact;
@@ -19,9 +19,4 @@ const getContactById = async contactId => {
     console.error(`Service error - getContactById (${contactId}):`, error);
     throw error;
   }
-};
-
-module.exports = {
-  getAllContacts,
-  getContactById,
 };

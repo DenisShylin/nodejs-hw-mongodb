@@ -1,9 +1,11 @@
-const express = require('express');
-const cors = require('cors');
-const pino = require('pino-http')();
-const contactsRouter = require('./routes/contacts');
+import express from 'express';
+import cors from 'cors';
+import pinoHttp from 'pino-http';
+import contactsRouter from './routes/contacts.js';
 
-const setupServer = () => {
+const pino = pinoHttp();
+
+export const setupServer = () => {
   const app = express();
 
   app.use(cors());
@@ -26,5 +28,3 @@ const setupServer = () => {
 
   return app;
 };
-
-module.exports = { setupServer };
