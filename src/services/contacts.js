@@ -20,3 +20,37 @@ export const getContactById = async contactId => {
     throw error;
   }
 };
+
+export const createContact = async contactData => {
+  try {
+    const newContact = await Contact.create(contactData);
+    return newContact;
+  } catch (error) {
+    console.error('Service error - createContact:', error);
+    throw error;
+  }
+};
+
+export const updateContact = async (contactId, contactData) => {
+  try {
+    const updatedContact = await Contact.findByIdAndUpdate(
+      contactId,
+      contactData,
+      { new: true },
+    );
+    return updatedContact;
+  } catch (error) {
+    console.error(`Service error - updateContact (${contactId}):`, error);
+    throw error;
+  }
+};
+
+export const deleteContact = async contactId => {
+  try {
+    const result = await Contact.findByIdAndDelete(contactId);
+    return result;
+  } catch (error) {
+    console.error(`Service error - deleteContact (${contactId}):`, error);
+    throw error;
+  }
+};
