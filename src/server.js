@@ -16,10 +16,8 @@ export const setupServer = () => {
 
   app.use('/contacts', contactsRouter);
 
-  // Використовуємо notFoundHandler замість простого 404
   app.use(notFoundHandler);
 
-  // Додаємо обробник помилок
   app.use(errorHandler);
 
   const PORT = process.env.PORT || 3000;
