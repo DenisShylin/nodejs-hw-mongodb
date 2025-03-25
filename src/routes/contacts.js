@@ -6,8 +6,12 @@ import {
   createContactSchema,
   updateContactSchema,
 } from '../schemas/contactSchemas.js';
+import { authenticate } from '../middlewares/authenticate.js';
 
 const router = express.Router();
+
+// Додаємо middleware аутентифікації для всіх роутів
+router.use(authenticate);
 
 router.get('/', ctrlWrapper(contactsController.getAllContacts));
 router.get(

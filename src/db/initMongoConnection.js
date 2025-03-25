@@ -1,3 +1,4 @@
+// initMongoConnection.js;
 import mongoose from 'mongoose';
 
 export const initMongoConnection = async () => {
