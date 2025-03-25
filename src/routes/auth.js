@@ -1,3 +1,4 @@
+// auth.js;
 import express from 'express';
 import * as authController from '../controllers/auth.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
