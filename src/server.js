@@ -1,4 +1,3 @@
-// server.js;
 import express from 'express';
 import cors from 'cors';
 import pinoHttp from 'pino-http';
