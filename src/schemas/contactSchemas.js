@@ -1,3 +1,4 @@
+// contactSchemas.js;
 import Joi from 'joi';
 
 const contactTypeEnum = ['work', 'home', 'personal'];

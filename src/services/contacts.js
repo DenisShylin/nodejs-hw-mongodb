@@ -1,11 +1,11 @@
 import Contact from '../models/Contact.js';
 
-export const getAllContacts = async (query = {}) => {
+export const getAllContacts = async (query = {}, userId) => {
   try {
     const { page = 1, perPage = 10 } = query;
     const skip = (page - 1) * perPage;
 
-    const filter = {};
+    const filter = { userId };
     if (query.type) {
       filter.contactType = query.type;
     }
@@ -43,9 +43,9 @@ export const getAllContacts = async (query = {}) => {
   }
 };
 
-export const getContactById = async contactId => {
+export const getContactById = async (contactId, userId) => {
   try {
-    const contact = await Contact.findById(contactId);
+    const contact = await Contact.findOne({ _id: contactId, userId });
     return contact;
   } catch (error) {
     console.error(`Помилка сервісу - getContactById (${contactId}):`, error);
@@ -53,9 +53,9 @@ export const getContactById = async contactId => {
   }
 };
 
-export const createContact = async contactData => {
+export const createContact = async (contactData, userId) => {
   try {
-    const newContact = await Contact.create(contactData);
+    const newContact = await Contact.create({ ...contactData, userId });
     return newContact;
   } catch (error) {
     console.error('Помилка сервісу - createContact:', error);
@@ -63,10 +63,10 @@ export const createContact = async contactData => {
   }
 };
 
-export const updateContact = async (contactId, contactData) => {
+export const updateContact = async (contactId, contactData, userId) => {
   try {
-    const updatedContact = await Contact.findByIdAndUpdate(
-      contactId,
+    const updatedContact = await Contact.findOneAndUpdate(
+      { _id: contactId, userId },
       contactData,
       { new: true },
     );
@@ -77,9 +77,9 @@ export const updateContact = async (contactId, contactData) => {
   }
 };
 
-export const deleteContact = async contactId => {
+export const deleteContact = async (contactId, userId) => {
   try {
-    const result = await Contact.findByIdAndDelete(contactId);
+    const result = await Contact.findOneAndDelete({ _id: contactId, userId });
     return result;
   } catch (error) {
     console.error(`Помилка сервісу - deleteContact (${contactId}):`, error);
