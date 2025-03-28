@@ -62,7 +62,7 @@ export const loginUser = async userData => {
   });
 
   // Зберегти сесію в базі даних
-  await Session.create({
+  const session = await Session.create({
     userId: user._id,
     accessToken,
     refreshToken,
@@ -78,6 +78,7 @@ export const loginUser = async userData => {
     },
     accessToken,
     refreshToken,
+    sessionId: session._id, // Додано повернення ID сесії
   };
 };
 
@@ -115,7 +116,7 @@ export const refreshSession = async refreshToken => {
     });
 
     // Зберегти нову сесію
-    await Session.create({
+    const newSession = await Session.create({
       userId: id,
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
@@ -126,12 +127,22 @@ export const refreshSession = async refreshToken => {
     return {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
+      sessionId: newSession._id, // Додано повернення ID нової сесії
     };
   } catch (error) {
     return null;
   }
 };
 
-export const logout = async userId => {
-  return await Session.deleteMany({ userId });
+export const logout = async (userId, sessionId) => {
+  // Якщо sessionId не передано, видаляємо всі сесії користувача
+  if (!sessionId) {
+    return await Session.deleteMany({ userId });
+  }
+
+  // Інакше видаляємо конкретну сесію
+  return await Session.findOneAndDelete({
+    userId,
+    _id: sessionId,
+  });
 };

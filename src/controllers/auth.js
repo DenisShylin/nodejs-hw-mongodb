@@ -23,10 +23,17 @@ export const login = async (req, res) => {
     throw createError(401, 'Email or password is wrong');
   }
 
-  const { refreshToken, accessToken, user } = result;
+  const { refreshToken, accessToken, user, sessionId } = result;
 
-  // Встановлюємо refreshToken у cookies
+  // Встановлюємо refreshToken та sessionId у cookies
   res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 днів
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+  });
+
+  res.cookie('sessionId', sessionId, {
     httpOnly: true,
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 днів
     secure: process.env.NODE_ENV === 'production',
@@ -55,12 +62,19 @@ export const refresh = async (req, res) => {
     throw createError(401, 'Not authorized');
   }
 
-  const { accessToken, refreshToken: newRefreshToken } = result;
+  const { accessToken, refreshToken: newRefreshToken, sessionId } = result;
 
-  // Встановлюємо новий refreshToken у cookies
+  // Встановлюємо новий refreshToken та sessionId у cookies
   res.cookie('refreshToken', newRefreshToken, {
     httpOnly: true,
-    maxAge: 30 * 24 * 60 * 60 * 1000,
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 днів
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+  });
+
+  res.cookie('sessionId', sessionId, {
+    httpOnly: true,
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 днів
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
   });
@@ -76,8 +90,17 @@ export const refresh = async (req, res) => {
 
 export const logout = async (req, res) => {
   const { _id } = req.user;
-  await authService.logout(_id);
+  const { sessionId, refreshToken } = req.cookies;
 
+  if (!refreshToken || !sessionId) {
+    throw createError(401, 'Not authorized');
+  }
+
+  await authService.logout(_id, sessionId);
+
+  // Очищаємо обидва куки
   res.clearCookie('refreshToken');
+  res.clearCookie('sessionId');
+
   res.status(204).send();
 };
