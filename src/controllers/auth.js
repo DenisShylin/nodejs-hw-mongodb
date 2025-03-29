@@ -1,4 +1,3 @@
-// auth.js;
 import createError from 'http-errors';
 import * as authService from '../services/auth.js';
 
@@ -25,7 +24,6 @@ export const login = async (req, res) => {
 
   const { refreshToken, accessToken, user, sessionId } = result;
 
-  // Встановлюємо refreshToken та sessionId у cookies
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 днів
@@ -64,7 +62,6 @@ export const refresh = async (req, res) => {
 
   const { accessToken, refreshToken: newRefreshToken, sessionId } = result;
 
-  // Встановлюємо новий refreshToken та sessionId у cookies
   res.cookie('refreshToken', newRefreshToken, {
     httpOnly: true,
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 днів
@@ -89,18 +86,23 @@ export const refresh = async (req, res) => {
 };
 
 export const logout = async (req, res) => {
-  const { _id } = req.user;
-  const { sessionId, refreshToken } = req.cookies;
+  try {
+    const { _id } = req.user;
 
-  if (!refreshToken || !sessionId) {
-    throw createError(401, 'Not authorized');
+    const refreshToken = req.cookies.refreshToken || null;
+    const sessionId = req.cookies.sessionId || null;
+
+    if (_id) {
+      await authService.logout(_id);
+    }
+
+    res.clearCookie('refreshToken');
+    res.clearCookie('sessionId');
+
+    return res.status(204).send();
+  } catch (error) {
+    res.clearCookie('refreshToken');
+    res.clearCookie('sessionId');
+    return res.status(204).send();
   }
-
-  await authService.logout(_id, sessionId);
-
-  // Очищаємо обидва куки
-  res.clearCookie('refreshToken');
-  res.clearCookie('sessionId');
-
-  res.status(204).send();
 };
