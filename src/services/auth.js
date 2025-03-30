@@ -1,4 +1,3 @@
-// auth.js;
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
@@ -43,10 +42,8 @@ export const loginUser = async userData => {
     return null;
   }
 
-  // Видалити стару сесію користувача, якщо вона є
   await Session.deleteMany({ userId: user._id });
 
-  // Створити токени
   const accessTokenExpires = new Date();
   accessTokenExpires.setMinutes(accessTokenExpires.getMinutes() + 15);
 
@@ -61,7 +58,6 @@ export const loginUser = async userData => {
     expiresIn: '30d',
   });
 
-  // Зберегти сесію в базі даних
   const session = await Session.create({
     userId: user._id,
     accessToken,
@@ -78,7 +74,7 @@ export const loginUser = async userData => {
     },
     accessToken,
     refreshToken,
-    sessionId: session._id, // Додано повернення ID сесії
+    sessionId: session._id,
   };
 };
 
@@ -91,16 +87,13 @@ export const refreshSession = async refreshToken => {
       return null;
     }
 
-    // Перевірка чи не протермінований refreshToken
     if (new Date() > session.refreshTokenValidUntil) {
       await Session.findByIdAndDelete(session._id);
       return null;
     }
 
-    // Видалити стару сесію
     await Session.findByIdAndDelete(session._id);
 
-    // Створити нові токени
     const accessTokenExpires = new Date();
     accessTokenExpires.setMinutes(accessTokenExpires.getMinutes() + 15);
 
@@ -115,7 +108,6 @@ export const refreshSession = async refreshToken => {
       expiresIn: '30d',
     });
 
-    // Зберегти нову сесію
     const newSession = await Session.create({
       userId: id,
       accessToken: newAccessToken,
@@ -127,22 +119,13 @@ export const refreshSession = async refreshToken => {
     return {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
-      sessionId: newSession._id, // Додано повернення ID нової сесії
+      sessionId: newSession._id,
     };
   } catch (error) {
     return null;
   }
 };
 
-export const logout = async (userId, sessionId) => {
-  // Якщо sessionId не передано, видаляємо всі сесії користувача
-  if (!sessionId) {
-    return await Session.deleteMany({ userId });
-  }
-
-  // Інакше видаляємо конкретну сесію
-  return await Session.findOneAndDelete({
-    userId,
-    _id: sessionId,
-  });
+export const logout = async userId => {
+  return await Session.deleteMany({ userId });
 };

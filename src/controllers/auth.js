@@ -62,6 +62,7 @@ export const refresh = async (req, res) => {
 
   const { accessToken, refreshToken: newRefreshToken, sessionId } = result;
 
+  // Встановлюємо новий refreshToken та sessionId у cookies
   res.cookie('refreshToken', newRefreshToken, {
     httpOnly: true,
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 днів
@@ -88,9 +89,6 @@ export const refresh = async (req, res) => {
 export const logout = async (req, res) => {
   try {
     const { _id } = req.user;
-
-    const refreshToken = req.cookies.refreshToken || null;
-    const sessionId = req.cookies.sessionId || null;
 
     if (_id) {
       await authService.logout(_id);
