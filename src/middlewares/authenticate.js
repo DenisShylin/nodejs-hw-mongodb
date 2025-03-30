@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import createError from 'http-errors';
 import User from '../models/user.js';
+import Session from '../models/session.js';
 
 export const authenticate = async (req, res, next) => {
   try {
@@ -19,6 +20,17 @@ export const authenticate = async (req, res, next) => {
 
     try {
       const { id } = jwt.verify(token, process.env.JWT_SECRET);
+
+      const session = await Session.findOne({
+        userId: id,
+        accessToken: token,
+        accessTokenValidUntil: { $gt: new Date() },
+      });
+
+      if (!session && !isLogoutRequest) {
+        return next(createError(401, 'Not authorized - session not found'));
+      }
+
       const user = await User.findById(id);
 
       if (!user) {
