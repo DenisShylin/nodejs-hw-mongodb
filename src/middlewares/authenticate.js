@@ -11,54 +11,57 @@ export const authenticate = async (req, res, next) => {
     const [bearer, token] = authorization.split(' ');
 
     if (bearer !== 'Bearer' || !token) {
-      if (isLogoutRequest) {
-        req.user = { _id: null };
-        return next();
-      }
       return next(createError(401, 'Not authorized'));
     }
 
     try {
-      const { id } = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.decode(token);
 
-      const session = await Session.findOne({
-        userId: id,
-        accessToken: token,
-        accessTokenValidUntil: { $gt: new Date() },
-      });
-
-      if (!session && !isLogoutRequest) {
-        return next(createError(401, 'Not authorized - session not found'));
-      }
-
-      const user = await User.findById(id);
-
-      if (!user) {
-        if (isLogoutRequest) {
-          req.user = { _id: null };
-          return next();
-        }
+      if (!decoded || !decoded.id) {
         return next(createError(401, 'Not authorized'));
       }
 
-      req.user = user;
-      next();
-    } catch (error) {
-      if (isLogoutRequest) {
-        req.user = { _id: null };
-        return next();
+      const session = await Session.findOne({
+        userId: decoded.id,
+        accessToken: token,
+      });
+
+      if (!session && !isLogoutRequest) {
+        return next(createError(401, 'Not authorized'));
       }
 
-      if (error.name === 'TokenExpiredError') {
-        return next(createError(401, 'Access token expired'));
+      try {
+        const { id } = jwt.verify(token, process.env.JWT_SECRET);
+
+        const user = await User.findById(id);
+
+        if (!user) {
+          return next(createError(401, 'Not authorized'));
+        }
+
+        req.user = user;
+        next();
+      } catch (jwtError) {
+        if (jwtError.name === 'TokenExpiredError') {
+          return next(createError(401, 'Access token expired'));
+        }
+
+        return next(createError(401, 'Not authorized'));
       }
+    } catch (error) {
+      if (isLogoutRequest) {
+        try {
+          const { id } = jwt.decode(token) || {};
+          if (id) {
+            req.user = { _id: id };
+            return next();
+          }
+        } catch (e) {}
+      }
+
       next(createError(401, 'Not authorized'));
     }
   } catch (error) {
-    if (req.path === '/logout') {
-      req.user = { _id: null };
-      return next();
-    }
     next(error);
   }
 };
