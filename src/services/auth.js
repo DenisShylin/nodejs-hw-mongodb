@@ -42,8 +42,10 @@ export const loginUser = async userData => {
     return null;
   }
 
+  // Видалити стару сесію користувача, якщо вона є
   await Session.deleteMany({ userId: user._id });
 
+  // Створити токени
   const accessTokenExpires = new Date();
   accessTokenExpires.setMinutes(accessTokenExpires.getMinutes() + 15);
 
@@ -58,6 +60,7 @@ export const loginUser = async userData => {
     expiresIn: '30d',
   });
 
+  // Зберегти сесію в базі даних
   const session = await Session.create({
     userId: user._id,
     accessToken,
@@ -87,13 +90,16 @@ export const refreshSession = async refreshToken => {
       return null;
     }
 
+    // Перевірка чи не протермінований refreshToken
     if (new Date() > session.refreshTokenValidUntil) {
       await Session.findByIdAndDelete(session._id);
       return null;
     }
 
+    // Видалити стару сесію
     await Session.findByIdAndDelete(session._id);
 
+    // Створити нові токени
     const accessTokenExpires = new Date();
     accessTokenExpires.setMinutes(accessTokenExpires.getMinutes() + 15);
 
@@ -108,6 +114,7 @@ export const refreshSession = async refreshToken => {
       expiresIn: '30d',
     });
 
+    // Зберегти нову сесію
     const newSession = await Session.create({
       userId: id,
       accessToken: newAccessToken,
@@ -127,5 +134,15 @@ export const refreshSession = async refreshToken => {
 };
 
 export const logout = async userId => {
+  // Удаляем все сессии пользователя
   return await Session.deleteMany({ userId });
+};
+
+export const logoutBySessionId = async sessionId => {
+  try {
+    return await Session.findByIdAndDelete(sessionId);
+  } catch (error) {
+    console.error('Error in logoutBySessionId:', error);
+    return null;
+  }
 };

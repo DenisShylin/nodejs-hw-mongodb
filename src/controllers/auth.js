@@ -24,6 +24,7 @@ export const login = async (req, res) => {
 
   const { refreshToken, accessToken, user, sessionId } = result;
 
+  // Встановлюємо refreshToken та sessionId у cookies
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 днів
@@ -88,17 +89,27 @@ export const refresh = async (req, res) => {
 
 export const logout = async (req, res) => {
   try {
-    const { _id } = req.user;
+    // Получаем sessionId из куки
+    const { refreshToken, sessionId } = req.cookies;
 
-    if (_id) {
-      await authService.logout(_id);
+    if (!refreshToken || !sessionId) {
+      // Даже если куки отсутствуют, возвращаем 204
+      res.clearCookie('refreshToken');
+      res.clearCookie('sessionId');
+      return res.status(204).send();
     }
 
+    // Пытаемся найти и удалить сессию по sessionId
+    await authService.logoutBySessionId(sessionId);
+
+    // Очищаем куки
     res.clearCookie('refreshToken');
     res.clearCookie('sessionId');
 
+    // Возвращаем статус 204
     return res.status(204).send();
   } catch (error) {
+    // Даже при ошибке очищаем куки и возвращаем 204
     res.clearCookie('refreshToken');
     res.clearCookie('sessionId');
     return res.status(204).send();
