@@ -1,4 +1,4 @@
-// auth.js;
+// Файл: src/routes/auth.js
 import express from 'express';
 import * as authController from '../controllers/auth.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
@@ -22,6 +22,6 @@ router.post(
 
 router.post('/refresh', ctrlWrapper(authController.refresh));
 
-router.post('/logout', authenticate, ctrlWrapper(authController.logout));
+router.post('/logout', ctrlWrapper(authController.logout));
 
 export default router;
