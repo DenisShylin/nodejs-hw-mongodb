@@ -5,9 +5,7 @@ import Session from '../models/session.js';
 
 export const authenticate = async (req, res, next) => {
   try {
-    // Специальное условие для запроса на логаут
-    const isLogoutRequest = req.path === '/logout';
-
+    // Получаем токен из заголовка
     const { authorization = '' } = req.headers;
     const [bearer, token] = authorization.split(' ');
 
@@ -16,55 +14,49 @@ export const authenticate = async (req, res, next) => {
     }
 
     try {
-      // Декодируем токен без валидации, чтобы получить ID пользователя
-      const decoded = jwt.decode(token);
+      // Проверяем валидность токена
+      const { id } = jwt.verify(token, process.env.JWT_SECRET);
 
-      if (!decoded || !decoded.id) {
-        return next(createError(401, 'Not authorized'));
-      }
-
-      // Проверяем наличие сессии в базе данных
+      // ВАЖНО: Проверяем наличие активной сессии в базе данных
       const session = await Session.findOne({
-        userId: decoded.id,
+        userId: id,
         accessToken: token,
       });
 
-      // Если запрос не на логаут и сессия не найдена, возвращаем ошибку
-      if (!session && !isLogoutRequest) {
-        return next(createError(401, 'Not authorized'));
-      }
-
-      try {
-        const { id } = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await User.findById(id);
-
-        if (!user) {
-          return next(createError(401, 'Not authorized'));
-        }
-
-        req.user = user;
-        next();
-      } catch (jwtError) {
-        if (jwtError.name === 'TokenExpiredError') {
-          return next(createError(401, 'Access token expired'));
+      // Если сессия не найдена (например, после логаута), возвращаем ошибку
+      if (!session) {
+        // Специальная обработка для запроса логаута
+        if (req.path === '/logout') {
+          req.user = { _id: id };
+          return next();
         }
         return next(createError(401, 'Not authorized'));
       }
+
+      const user = await User.findById(id);
+
+      if (!user) {
+        return next(createError(401, 'Not authorized'));
+      }
+
+      req.user = user;
+      next();
     } catch (error) {
-      // Для логаута делаем особую обработку
-      if (isLogoutRequest) {
+      if (error.name === 'TokenExpiredError') {
+        return next(createError(401, 'Access token expired'));
+      }
+      // Специальная обработка для запроса логаута с недействительным токеном
+      if (req.path === '/logout') {
         try {
-          // Пытаемся извлечь ID пользователя для логаута
-          const { id } = jwt.decode(token) || {};
-          if (id) {
-            req.user = { _id: id };
+          const decoded = jwt.decode(token);
+          if (decoded && decoded.id) {
+            req.user = { _id: decoded.id };
             return next();
           }
         } catch (e) {
-          // Игнорируем ошибки для логаута
+          // Игнорируем ошибки декодирования для логаута
         }
       }
-
       next(createError(401, 'Not authorized'));
     }
   } catch (error) {
