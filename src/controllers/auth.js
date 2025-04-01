@@ -30,7 +30,6 @@ export const login = async (req, res) => {
 
   const { refreshToken, accessToken, user, sessionId } = result;
 
-  // Встановлюємо refreshToken та sessionId у cookies
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 днів
