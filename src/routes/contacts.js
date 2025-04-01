@@ -1,4 +1,4 @@
-// contacts.js;
+// routes/contacts.js
 import express from 'express';
 import * as contactsController from '../controllers/contacts.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
@@ -8,10 +8,11 @@ import {
   updateContactSchema,
 } from '../schemas/contactSchemas.js';
 import { authenticate } from '../middlewares/authenticate.js';
+import { uploadCloud } from '../utils/cloudinaryService.js';
 
 const router = express.Router();
 
-// Додаємо middleware аутентифікації для всіх роутів
+// Добавляем middleware аутентификации для всех маршрутов
 router.use(authenticate);
 
 router.get('/', ctrlWrapper(contactsController.getAllContacts));
@@ -22,12 +23,14 @@ router.get(
 );
 router.post(
   '/',
+  uploadCloud.single('photo'), // Добавляем middleware для загрузки файлов
   validateBody(createContactSchema),
   ctrlWrapper(contactsController.createContact),
 );
 router.patch(
   '/:contactId',
   isValidId,
+  uploadCloud.single('photo'), // Добавляем middleware для загрузки файлов
   validateBody(updateContactSchema),
   ctrlWrapper(contactsController.updateContact),
 );

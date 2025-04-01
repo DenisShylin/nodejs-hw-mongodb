@@ -1,4 +1,4 @@
-// contacts.js;
+// controllers/contacts.js
 import createError from 'http-errors';
 import * as contactsService from '../services/contacts.js';
 
@@ -31,8 +31,15 @@ export const getContactById = async (req, res) => {
 };
 
 export const createContact = async (req, res) => {
+  const contactData = { ...req.body };
+
+  // Если был загружен файл, добавляем URL в данные контакта
+  if (req.file) {
+    contactData.photo = req.file.path;
+  }
+
   const newContact = await contactsService.createContact(
-    req.body,
+    contactData,
     req.user._id,
   );
 
@@ -45,9 +52,16 @@ export const createContact = async (req, res) => {
 
 export const updateContact = async (req, res) => {
   const { contactId } = req.params;
+  const contactData = { ...req.body };
+
+  // Если был загружен новый файл, обновляем URL фото
+  if (req.file) {
+    contactData.photo = req.file.path;
+  }
+
   const updatedContact = await contactsService.updateContact(
     contactId,
-    req.body,
+    contactData,
     req.user._id,
   );
 

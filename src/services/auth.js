@@ -1,3 +1,4 @@
+// services/auth.js
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
@@ -144,5 +145,33 @@ export const logoutBySessionId = async sessionId => {
   } catch (error) {
     console.error('Error in logoutBySessionId:', error);
     return null;
+  }
+};
+
+export const findUserByEmail = async email => {
+  try {
+    return await User.findOne({ email });
+  } catch (error) {
+    console.error('Error finding user by email:', error);
+    throw error;
+  }
+};
+
+export const changePassword = async (email, newPassword) => {
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return null;
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    return user;
+  } catch (error) {
+    console.error('Error changing password:', error);
+    throw error;
   }
 };

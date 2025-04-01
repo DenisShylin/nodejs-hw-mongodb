@@ -1,4 +1,4 @@
-// Contact.js;
+// models/Contact.js
 import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
@@ -29,6 +29,10 @@ const contactSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+    },
+    photo: {
+      type: String,
+      default: null,
     },
   },
   { timestamps: true },
