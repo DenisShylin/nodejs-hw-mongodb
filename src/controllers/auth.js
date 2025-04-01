@@ -1,5 +1,11 @@
+// controllers/auth.js
 import createError from 'http-errors';
+import jwt from 'jsonwebtoken';
 import * as authService from '../services/auth.js';
+import {
+  sendResetPasswordEmail,
+  createResetToken,
+} from '../utils/emailService.js';
 
 export const register = async (req, res) => {
   const user = await authService.registerUser(req.body);
@@ -113,5 +119,66 @@ export const logout = async (req, res) => {
     res.clearCookie('refreshToken');
     res.clearCookie('sessionId');
     return res.status(204).send();
+  }
+};
+
+export const sendResetEmail = async (req, res) => {
+  const { email } = req.body;
+
+  // Проверяем существует ли пользователь с указанным email
+  const user = await authService.findUserByEmail(email);
+
+  if (!user) {
+    throw createError(404, 'User not found!');
+  }
+
+  // Создаем токен для сброса пароля
+  const token = createResetToken(email);
+
+  // Отправляем письмо со ссылкой для сброса пароля
+  const emailSent = await sendResetPasswordEmail(email, token);
+
+  if (!emailSent) {
+    throw createError(500, 'Failed to send the email, please try again later.');
+  }
+
+  res.status(200).json({
+    status: 200,
+    message: 'Reset password email has been successfully sent.',
+    data: {},
+  });
+};
+
+export const resetPassword = async (req, res) => {
+  const { token, password } = req.body;
+
+  try {
+    // Проверяем валидность и срок действия токена
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const { email } = decoded;
+
+    // Изменяем пароль пользователя
+    const user = await authService.changePassword(email, password);
+
+    if (!user) {
+      throw createError(404, 'User not found!');
+    }
+
+    // Удаляем все сессии пользователя
+    await authService.logout(user._id);
+
+    res.status(200).json({
+      status: 200,
+      message: 'Password has been successfully reset.',
+      data: {},
+    });
+  } catch (error) {
+    if (
+      error.name === 'TokenExpiredError' ||
+      error.name === 'JsonWebTokenError'
+    ) {
+      throw createError(401, 'Token is expired or invalid.');
+    }
+    throw error;
   }
 };
