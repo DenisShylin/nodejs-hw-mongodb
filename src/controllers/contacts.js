@@ -32,53 +32,75 @@ export const getContactById = async (req, res) => {
 };
 
 export const createContact = async (req, res) => {
-  const contactData = { ...req.body };
+  try {
+    const contactData = { ...req.body };
 
-  // Если был загружен файл, добавляем URL в данные контакта
-  if (req.file) {
-    // Загружаем файл на Cloudinary и получаем URL
-    const photoUrl = await uploadImage(req.file);
-    contactData.photo = photoUrl;
+    // Якщо був завантажений файл, додаємо URL до даних контакту
+    if (req.file) {
+      try {
+        const photoUrl = await uploadImage(req.file);
+        if (photoUrl) {
+          contactData.photo = photoUrl;
+        }
+      } catch (err) {
+        console.error('Error uploading image:', err);
+        // Продовжуємо без фото у разі помилки
+      }
+    }
+
+    const newContact = await contactsService.createContact(
+      contactData,
+      req.user._id,
+    );
+
+    res.status(201).json({
+      status: 201,
+      message: 'Successfully created a contact!',
+      data: newContact,
+    });
+  } catch (error) {
+    console.error('Create contact error:', error);
+    throw error;
   }
-
-  const newContact = await contactsService.createContact(
-    contactData,
-    req.user._id,
-  );
-
-  res.status(201).json({
-    status: 201,
-    message: 'Successfully created a contact!',
-    data: newContact,
-  });
 };
 
 export const updateContact = async (req, res) => {
-  const { contactId } = req.params;
-  const contactData = { ...req.body };
+  try {
+    const { contactId } = req.params;
+    const contactData = { ...req.body };
 
-  // Если был загружен новый файл, обновляем URL фото
-  if (req.file) {
-    // Загружаем файл на Cloudinary и получаем URL
-    const photoUrl = await uploadImage(req.file);
-    contactData.photo = photoUrl;
+    // Якщо був завантажений новий файл, оновлюємо URL фото
+    if (req.file) {
+      try {
+        const photoUrl = await uploadImage(req.file);
+        if (photoUrl) {
+          contactData.photo = photoUrl;
+        }
+      } catch (err) {
+        console.error('Error uploading image:', err);
+        // Продовжуємо без оновлення фото у разі помилки
+      }
+    }
+
+    const updatedContact = await contactsService.updateContact(
+      contactId,
+      contactData,
+      req.user._id,
+    );
+
+    if (!updatedContact) {
+      throw createError(404, 'Contact not found');
+    }
+
+    res.status(200).json({
+      status: 200,
+      message: 'Successfully patched a contact!',
+      data: updatedContact,
+    });
+  } catch (error) {
+    console.error('Update contact error:', error);
+    throw error;
   }
-
-  const updatedContact = await contactsService.updateContact(
-    contactId,
-    contactData,
-    req.user._id,
-  );
-
-  if (!updatedContact) {
-    throw createError(404, 'Contact not found');
-  }
-
-  res.status(200).json({
-    status: 200,
-    message: 'Successfully patched a contact!',
-    data: updatedContact,
-  });
 };
 
 export const deleteContact = async (req, res) => {
