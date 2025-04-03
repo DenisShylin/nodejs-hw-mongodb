@@ -7,6 +7,7 @@ import contactsRouter from './routes/contacts.js';
 import authRouter from './routes/auth.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { notFoundHandler } from './middlewares/notFoundHandler.js';
+import apiDocsRouter from './routes/api-docs.js';
 
 const pino = pinoHttp();
 
@@ -25,6 +26,7 @@ export const setupServer = () => {
 
   app.use('/contacts', contactsRouter);
   app.use('/auth', authRouter);
+  app.use('/api-docs', apiDocsRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

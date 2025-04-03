@@ -1,0 +1,72 @@
+# Contact schema
+Contact:
+  type: object
+  properties:
+    _id:
+      type: string
+      description: Contact identifier
+      example: 60d21b4667d0d8992e610c85
+    name:
+      type: string
+      description: Contact name
+      example: John Doe
+    phoneNumber:
+      type: string
+      description: Contact phone number
+      example: +1234567890
+    email:
+      type: string
+      description: Contact email
+      example: john@example.com
+    isFavourite:
+      type: boolean
+      description: Indicates if contact is marked as favourite
+      example: false
+    contactType:
+      type: string
+      enum: [work, home, personal]
+      description: Contact type
+      example: personal
+    photo:
+      type: string
+      description: Contact photo URL
+      example: https://res.cloudinary.com/dypsbr5xf/image/upload/v1613726585/contacts/contact_photo.jpg
+    userId:
+      type: string
+      description: User identifier
+      example: 60d21b4667d0d8992e610c86
+    createdAt:
+      type: string
+      format: date-time
+      example: 2023-01-01T00:00:00.000Z
+    updatedAt:
+      type: string
+      format: date-time
+      example: 2023-01-01T00:00:00.000Z
+
+# Pagination info schema
+PaginationInfo:
+  type: object
+  properties:
+    data:
+      type: array
+      items:
+        $ref: '#/components/schemas/Contact'
+    page:
+      type: integer
+      example: 1
+    perPage:
+      type: integer
+      example: 10
+    totalItems:
+      type: integer
+      example: 25
+    totalPages:
+      type: integer
+      example: 3
+    hasPreviousPage:
+      type: boolean
+      example: false
+    hasNextPage:
+      type: boolean
+      example: true
