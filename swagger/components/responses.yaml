@@ -1,0 +1,51 @@
+# Common responses
+NotFound:
+  description: Resource not found
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          status:
+            type: integer
+            example: 404
+          message:
+            type: string
+            example: Contact not found
+          data:
+            type: string
+            example: Contact not found
+
+Unauthorized:
+  description: Not authorized
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          status:
+            type: integer
+            example: 401
+          message:
+            type: string
+            example: Not authorized
+          data:
+            type: string
+            example: Not authorized
+
+BadRequest:
+  description: Bad request
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          status:
+            type: integer
+            example: 400
+          message:
+            type: string
+            example: Bad request
+          data:
+            type: string
+            example: Bad request
